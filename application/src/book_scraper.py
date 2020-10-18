@@ -62,15 +62,22 @@ class BookScraper:
             List
                 contains all the valid URLs
         """
-        pages_urls = []
+        valid_urls = []
         new_page = start_url
 
+        more_soup = self.get_soup(start_url)
 
-        while True:
-            pages_urls.append(new_page)
-            base_url = pages_urls[-1].split("-")[0]
-            page_num = pages_urls[-1].split("-")[1].split(".")[0]
+        get_total_pages = more_soup.find("ul", class_= "pager")   
+        total_pages = get_total_pages.li.string.split()[-1]
+        page_num = start_url.split("-")[1].split(".")[0]
+
+        while int(page_num) < int(total_pages):
+            valid_urls.append(new_page)
+            base_url = valid_urls[-1].split("-")[0]
+            page_num = valid_urls[-1].split("-")[1].split(".")[0]
             new_page = base_url + "-" + str(int(page_num) + 1) + ".html"
+
+        return valid_urls
 
         # valid_pages = []
         # valid_pages.append(start_url)
@@ -102,6 +109,7 @@ class BookScraper:
             Object
                 contains all the book's metadata
         """
+        # .string causes pool to thorw a recursion error
 
         base_url = '/'.join(book_url.split("/")[:3])
 
@@ -152,15 +160,15 @@ class BookScraper:
         startURL = self.config.web_url
         df = waifu.DataFrame(self.dataframe, columns=[n for n in self.dataframe])
 
-        print("Getting the valid URLs...")
+        print("Getting the available pages to scrape...")
         all_pages = self.get_all_valid_pages(startURL)
         all_books_URLs = []
 
         # kurumi_past = time.perf_counter()
 
-        chunky_size = 2
+        chunky_size = 4
 
-        print("Getting the all URLs of the books...")
+        print("Getting all the books from each page...")
         with Pool(processes=8) as pool, tqdm.tqdm(total=len(all_pages)) as pbar:
             for data in pool.map(self.get_all_books, all_pages , chunksize=chunky_size):
                 all_books_URLs.extend(data)
@@ -169,9 +177,9 @@ class BookScraper:
             pool.terminate()
             pool.join()
 
-        print("Getting the all books's data...")
+        print("Getting each book's data")
         with Pool(processes=10) as pool, tqdm.tqdm(total=len(all_books_URLs)) as pbar:
-            for book in pool.map(self.get_book_meta, all_books_URLs , chunksize=chunky_size):
+            for book in pool.map(self.get_book_meta, all_books_URLs, chunksize=chunky_size):
                 df = df.append(book, ignore_index=True)
                 pbar.update()
 

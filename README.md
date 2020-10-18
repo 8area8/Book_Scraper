@@ -3,6 +3,9 @@
 
 <hr/>
 
+### Notes:
+- the app should take around 2 min to finish, please be patient
+
 ### Now, using a CMD on **Windows/Unix**
 * Then : <br/>
 -> 1 : `python -m venv .venv` <br/>

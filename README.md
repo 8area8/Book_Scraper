@@ -4,7 +4,8 @@
 <hr/>
 
 ### Notes:
-- the app should take around 2 min to finish, please be patient
+- For some reason, the loading bar doesn't load while its working... 
+- It should take around 2 min to finish, please be patient.
 
 ### Now, using a CMD on **Windows/Unix**
 * Then : <br/>
@@ -21,4 +22,4 @@
 * `pip install -r requirements.txt`
 
 ## Run the app
-* `py main.py`
+* `python main.py`

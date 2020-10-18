@@ -153,7 +153,7 @@ class BookScraper:
         """
         Returns
         -------
-            Dictionary
+            Panda Dataframe
                 containing all the book scraped from the website
         
         """
@@ -176,6 +176,7 @@ class BookScraper:
 
             pool.terminate()
             pool.join()
+        pbar.close()
 
         print("Getting each book's data")
         with Pool(processes=10) as pool, tqdm.tqdm(total=len(all_books_URLs)) as pbar:
@@ -185,9 +186,9 @@ class BookScraper:
 
             pool.terminate()
             pool.join()
+        pbar.close()
 
         # print(df.head())
-
         return df
         # pbar = tqdm.tqdm(total=len(all_books_URLs))
         # for URL in all_books_URLs:

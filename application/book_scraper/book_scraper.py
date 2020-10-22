@@ -48,7 +48,6 @@ class BookScraper:
             List
                 contains all the books URLs inside a single page
         """
-
         soup = self.get_soup(url)
         base_url = "/".join(url.split("/")[:-1]) + "/" 
         all_books_on_page = [base_url + x.div.a.get('href') for x in soup.findAll("article", class_ = "product_pod")]
@@ -78,29 +77,6 @@ class BookScraper:
             new_page = base_url + "-" + str(int(page_num) + 1) + ".html"
 
         return valid_urls
-
-        # valid_pages = []
-        # valid_pages.append(start_url)
-
-        # more_soup = self.get_soup(start_url)
-
-        # get_total_pages = more_soup.find("ul", class_= "pager")
-        # total_pages = get_total_pages.li.string.split()[-1]
-        # page_num = 0
-
-        # next_page = start_url
-
-        # print(page_num)
-
-        # while int(page_num) < int(total_pages):
-        #     base_url = valid_pages[-1].split("-")[0]
-        #     page_num = valid_pages[-1].split("-")[1].split(".")[0]
-
-        #     next_page = base_url + "-" + str(int(page_num) + 1) + ".html"
-        #     valid_pages.append(next_page)
-
-        # return valid_pages
-
      
     def get_book_meta(self, book_url):
         """
@@ -110,7 +86,6 @@ class BookScraper:
                 contains all the book's metadata
         """
         # .string causes pool to thorw a recursion error
-
         base_url = '/'.join(book_url.split("/")[:3])
 
         more_soup = self.get_soup(book_url)
@@ -129,10 +104,7 @@ class BookScraper:
         price_with_tax = soup_rows[4].td.get_text()[2:]
         price_without_tax = soup_rows[6].td.get_text()[2:]
         item_in_stock = int(re.findall(r'\d+', soup_rows[10].td.get_text())[0])
-        # prod_type = soup_rows[2].td.get_text()
-        # tax = soup_rows[8].td.get_text()[2:]
-        # num_of_reviews = soup_rows[12].td.get_text()
-
+     
         book = {
             "product_page_url" : book_url,
             "universal_product_code" : upc,
@@ -164,23 +136,22 @@ class BookScraper:
         all_pages = self.get_all_valid_pages(startURL)
         all_books_URLs = []
 
-        # kurumi_past = time.perf_counter()
-
-        chunky_size = 4
+        chunky_size = 10
+        processes = 10
 
         print("Getting all the books from each page...")
-        with Pool(processes=8) as pool, tqdm.tqdm(total=len(all_pages)) as pbar:
-            for data in pool.map(self.get_all_books, all_pages , chunksize=chunky_size):
+        with Pool(processes=processes) as pool, tqdm.tqdm(total=len(all_pages)) as pbar:
+            for data in pool.imap_unordered(self.get_all_books, all_pages , chunksize=chunky_size):
                 all_books_URLs.extend(data)
                 pbar.update()
 
             pool.terminate()
             pool.join()
         pbar.close()
-
+        
         print("Getting each book's data")
-        with Pool(processes=10) as pool, tqdm.tqdm(total=len(all_books_URLs)) as pbar:
-            for book in pool.map(self.get_book_meta, all_books_URLs, chunksize=chunky_size):
+        with Pool(processes=processes) as pool, tqdm.tqdm(total=len(all_books_URLs)) as pbar:
+            for book in pool.imap_unordered(self.get_book_meta, all_books_URLs, chunksize=chunky_size):
                 df = df.append(book, ignore_index=True)
                 pbar.update()
 
@@ -188,56 +159,4 @@ class BookScraper:
             pool.join()
         pbar.close()
 
-        # print(df.head())
         return df
-        # pbar = tqdm.tqdm(total=len(all_books_URLs))
-        # for URL in all_books_URLs:
-        #     all_books_data.extend(self.get_book_meta(URL))
-        #     pbar.update()
-
-        # with Pool(processes=4) as pool, tqdm.tqdm(total=len(all_books_URLs)) as pbar:
-        #     for data in pool.map(self.get_book_meta, all_books_URLs, chunksize=chunky_size):
-        #         print(data)
-
-        #         all_books_data.extend(data)
-        #         pbar.update()
-
-        #     pool.terminate()
-        #     pool.join()
-
-
-            
-                
-        
-            
-
-        # kurumi_now = time.perf_counter()
-        # print(f"Finished at {kurumi_now - kurumi_past:0.4f}s")
-
-
-            # kurumi_now = time.perf_counter()
-            # print(f"Took {kurumi_now - kurumi_past:0.4f}s")
-
-        # for page in all_pages:
-        #     list_of_books = self.get_all_books(page)
-        #     print(len(list_of_books))
-
-            # return
-            # for book_url in list_of_books:
-            #     book = self.get_book_meta(book_url)
-                
-            #     print(book["title"])
-
-            #     for key, item in book.items():
-            #         self.dataframe[key].append(book[key])
-
-                    # test = p.map(self.get_book_meta, all_links)
-            # for book_url in chunk:
-            #     book = self.get_book_meta.(book_url)
-            
-            # df = df.append(book, ignore_index=True)
-
-
-        
-
-        
